@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools>=68.0", "setuptools-scm>=8.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sentrylog"
+version = "0.1.0"
+description = "SIEM Lite: lightweight log analyzer with detection engine and dashboard"
+# readme = "README.md"  # disabled: file has corrupted bytes that break setuptools
+license = "MIT"
+requires-python = ">=3.10"
+authors = [{ name = "Franklin Latouche" }]
+keywords = ["siem", "log-analysis", "security", "detection", "blue-team"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: System Administrators",
+    "Topic :: Security",
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "click>=8.1",
+    "rich>=13.0",
+    "pyyaml>=6.0",
+    "flask>=3.0",
+    "watchdog>=4.0",
+    "httpx>=0.27",
+    "fpdf2>=2.7",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.4",
+]
+
+[project.scripts]
+sentrylog = "sentrylog.cli:cli"
+
+[tool.setuptools]
+package-dir = {"sentrylog" = "."}
+packages = [
+    "sentrylog",
+    "sentrylog.engine",
+    "sentrylog.output",
+    "sentrylog.parsers",
+    "sentrylog.scripts",
+    "sentrylog.storage",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP"]

@@ -1,0 +1,14 @@
+name: ssh_brute_force
+type: threshold
+severity: high
+description: Multiple failed SSH login attempts detected
+mitre_tags:
+  - "T1110.001"
+  - "T1110"
+conditions:
+  - field: action
+    operator: equals
+    value: auth_failure
+threshold_count: 5
+threshold_window: 120
+group_by: source_ip

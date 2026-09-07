@@ -1,0 +1,93 @@
+# Rules for detecting access to sensitive files and configuration exposure.
+# These catch attempts to read secrets, source code, and infrastructure config.
+
+- name: config_file_access
+  type: single
+  severity: high
+  description: "Access attempt to sensitive configuration file (.env, wp-config, database config)"
+  mitre_tags:
+    - "T1083"
+    - "T1552.001"
+  conditions:
+    - field: source
+      operator: equals
+      value: apache
+    - field: parsed_fields.path
+      operator: regex
+      value: "/(\\.(env|aws|docker)|wp-config\\.php|config\\.(php|yml|yaml|json|ini)|database\\.yml|settings\\.py|application\\.properties)"
+
+- name: git_exposure
+  type: single
+  severity: high
+  description: "Git repository exposure attempt — access to .git directory"
+  mitre_tags:
+    - "T1083"
+    - "T1213"
+  conditions:
+    - field: source
+      operator: equals
+      value: apache
+    - field: parsed_fields.path
+      operator: regex
+      value: "/\\.git/(config|HEAD|index|objects|refs|logs)"
+
+- name: backup_file_access
+  type: single
+  severity: medium
+  description: "Access attempt to backup or database dump files"
+  mitre_tags:
+    - "T1083"
+    - "T1005"
+  conditions:
+    - field: source
+      operator: equals
+      value: apache
+    - field: parsed_fields.path
+      operator: regex
+      value: "\\.(sql|bak|backup|dump|tar\\.gz|zip|7z|old|orig)$"
+
+- name: webshell_access
+  type: single
+  severity: critical
+  description: "Possible webshell access — PHP file in upload or temp directory"
+  mitre_tags:
+    - "T1505.003"
+  conditions:
+    - field: source
+      operator: equals
+      value: apache
+    - field: parsed_fields.path
+      operator: regex
+      value: "/(uploads?|tmp|temp|images|cache)/[^/]*\\.(php|phtml|php[345]|phar)"
+
+- name: admin_panel_probe
+  type: threshold
+  severity: medium
+  description: "Repeated access to admin/management endpoints from single IP"
+  mitre_tags:
+    - "T1083"
+    - "T1595"
+  conditions:
+    - field: source
+      operator: equals
+      value: apache
+    - field: parsed_fields.path
+      operator: regex
+      value: "/(admin|manager|console|dashboard|cpanel|phpmyadmin|adminer|wp-admin)"
+  threshold_count: 5
+  threshold_window: 120
+  group_by: source_ip
+
+- name: api_key_in_url
+  type: single
+  severity: high
+  description: "Possible API key or token exposed in URL query parameters"
+  mitre_tags:
+    - "T1552.001"
+  conditions:
+    - field: source
+      operator: equals
+      value: apache
+    - field: parsed_fields.path
+      operator: regex
+      value: "[?&](api[_-]?key|token|secret|password|passwd|auth|access[_-]?token|private[_-]?key)="

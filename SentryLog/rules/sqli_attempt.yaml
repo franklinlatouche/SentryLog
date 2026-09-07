@@ -1,0 +1,10 @@
+name: sqli_attempt
+type: single
+severity: high
+description: SQL injection attempt detected in HTTP request
+mitre_tags:
+  - "T1190"
+conditions:
+  - field: action
+    operator: equals
+    value: sqli_attempt

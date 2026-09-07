@@ -1,0 +1,48 @@
+- name: web_scanner_probe
+  type: single
+  severity: medium
+  description: Web scanner/recon activity detected
+  mitre_tags:
+    - "T1595.002"
+  conditions:
+    - field: action
+      operator: equals
+      value: scanner_probe
+
+- name: web_404_flood
+  type: threshold
+  severity: medium
+  description: High volume of 404 errors from single source (directory enumeration)
+  mitre_tags:
+    - "T1595.003"
+  conditions:
+    - field: action
+      operator: in
+      value:
+        - http_not_found
+        - scanner_probe
+  threshold_count: 10
+  threshold_window: 60
+  group_by: source_ip
+
+- name: xss_attempt
+  type: single
+  severity: high
+  description: Cross-site scripting attempt detected
+  mitre_tags:
+    - "T1059.007"
+  conditions:
+    - field: action
+      operator: equals
+      value: xss_attempt
+
+- name: path_traversal_attempt
+  type: single
+  severity: high
+  description: Path traversal attack attempt detected
+  mitre_tags:
+    - "T1083"
+  conditions:
+    - field: action
+      operator: equals
+      value: path_traversal

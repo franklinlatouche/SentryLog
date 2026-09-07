@@ -1,0 +1,119 @@
+# Rules for detecting suspicious authentication patterns on real servers.
+# These go beyond brute force to catch subtler indicators of compromise.
+
+- name: root_ssh_login
+  type: single
+  severity: high
+  description: "Direct SSH login as root — root login should be disabled or key-only"
+  mitre_tags:
+    - "T1078.001"
+  conditions:
+    - field: action
+      operator: equals
+      value: auth_success
+    - field: user
+      operator: equals
+      value: root
+
+- name: ssh_password_auth
+  type: single
+  severity: medium
+  description: "SSH password authentication used — key-based auth is preferred for security"
+  mitre_tags:
+    - "T1078"
+  conditions:
+    - field: action
+      operator: equals
+      value: auth_failure
+    - field: parsed_fields.auth_method
+      operator: equals
+      value: password
+
+- name: credential_stuffing
+  type: threshold
+  severity: high
+  description: "Multiple different invalid users from same IP — credential stuffing or user enumeration"
+  mitre_tags:
+    - "T1110.004"
+    - "T1589.001"
+  conditions:
+    - field: action
+      operator: equals
+      value: invalid_user
+  threshold_count: 5
+  threshold_window: 300
+  group_by: source_ip
+
+- name: sudo_unusual_command
+  type: single
+  severity: high
+  description: "Sudo used to run suspicious command (wget, curl, nc, python, perl, base64 decode)"
+  mitre_tags:
+    - "T1548.003"
+    - "T1059"
+  conditions:
+    - field: action
+      operator: equals
+      value: sudo
+    - field: parsed_fields.command
+      operator: regex
+      value: "(wget|curl)\\s+.*https?://|/bin/nc\\s|ncat\\s|python[23]?\\s+-c|perl\\s+-e|base64\\s+-d|chmod\\s+[0-7]*[67][0-7]{2}\\s"
+
+- name: sudo_package_install
+  type: single
+  severity: medium
+  description: "Software installed or removed via package manager — may indicate persistence setup"
+  mitre_tags:
+    - "T1548.003"
+    - "T1546"
+  conditions:
+    - field: action
+      operator: equals
+      value: sudo
+    - field: parsed_fields.command
+      operator: regex
+      value: "(apt|apt-get|dpkg|yum|dnf|pip)\\s+(install|remove|purge)"
+
+- name: rapid_sudo_burst
+  type: threshold
+  severity: high
+  description: "Rapid burst of sudo commands — possible automated privilege escalation"
+  mitre_tags:
+    - "T1548.003"
+  conditions:
+    - field: action
+      operator: equals
+      value: sudo
+  threshold_count: 5
+  threshold_window: 60
+  group_by: user
+
+- name: off_hours_auth_success
+  type: single
+  severity: medium
+  description: "Successful login for CRON service — verify expected scheduled tasks"
+  mitre_tags:
+    - "T1053.003"
+  conditions:
+    - field: action
+      operator: equals
+      value: auth_other
+    - field: parsed_fields.service
+      operator: equals
+      value: CRON
+
+- name: brute_force_distributed
+  type: threshold
+  severity: high
+  description: "High volume of auth failures across all sources — possible distributed brute force"
+  mitre_tags:
+    - "T1110.003"
+  conditions:
+    - field: action
+      operator: in
+      value:
+        - auth_failure
+        - invalid_user
+  threshold_count: 20
+  threshold_window: 300
+  group_by: user

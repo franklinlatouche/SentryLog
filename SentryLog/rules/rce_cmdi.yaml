@@ -1,0 +1,74 @@
+# Rules for detecting command injection and remote code execution attempts in HTTP requests.
+
+- name: os_command_injection
+  type: single
+  severity: critical
+  description: "OS command injection attempt via URL — shell metacharacters or common commands"
+  mitre_tags:
+    - "T1190"
+    - "T1059.004"
+  conditions:
+    - field: source
+      operator: equals
+      value: apache
+    - field: parsed_fields.path
+      operator: regex
+      value: "[;&|`]\\s*(cat|ls|id|whoami|uname|pwd|wget|curl|nc|bash|sh|python|perl|ruby)\\b"
+
+- name: server_side_request_forgery
+  type: single
+  severity: high
+  description: "Possible SSRF attempt — internal/metadata URL in request parameters"
+  mitre_tags:
+    - "T1190"
+    - "T1557"
+  conditions:
+    - field: source
+      operator: equals
+      value: apache
+    - field: parsed_fields.path
+      operator: regex
+      value: "(127\\.0\\.0\\.1|localhost|169\\.254\\.169\\.254|0\\.0\\.0\\.0|\\[::1\\]|metadata\\.google|169\\.254\\.170\\.2)"
+
+- name: malicious_user_agent
+  type: single
+  severity: medium
+  description: "Known malicious or exploit tool User-Agent detected"
+  mitre_tags:
+    - "T1595.002"
+  conditions:
+    - field: source
+      operator: equals
+      value: apache
+    - field: parsed_fields.user_agent
+      operator: regex
+      value: "(sqlmap|nikto|nmap|masscan|dirbuster|gobuster|wfuzz|ffuf|hydra|medusa|burp|zap|nessus|openvas|acunetix|w3af)"
+
+- name: http_method_abuse
+  type: single
+  severity: medium
+  description: "Unusual HTTP method used — possible probing or exploitation"
+  mitre_tags:
+    - "T1190"
+  conditions:
+    - field: source
+      operator: equals
+      value: apache
+    - field: parsed_fields.method
+      operator: regex
+      value: "^(TRACE|CONNECT|DEBUG|TRACK|OPTIONS)$"
+
+- name: encoded_attack_payload
+  type: single
+  severity: high
+  description: "Double-encoded or hex-encoded attack payload in URL — evasion technique"
+  mitre_tags:
+    - "T1027"
+    - "T1190"
+  conditions:
+    - field: source
+      operator: equals
+      value: apache
+    - field: parsed_fields.path
+      operator: regex
+      value: "(%25[0-9a-f]{2}|%00|%0[ad]|0x[0-9a-f]{8,}|\\\\x[0-9a-f]{2})"

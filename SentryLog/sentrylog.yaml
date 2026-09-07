@@ -1,0 +1,16 @@
+# SentryLog configuration
+db_path: sentrylog.db
+rules_dir: rules
+
+log_sources:
+  - /var/log/auth.log
+  - /var/log/apache2/access.log
+
+alert_outputs:
+  - console
+  - file
+
+# webhook_url: https://hooks.slack.com/services/xxx
+
+dashboard_host: "0.0.0.0"
+dashboard_port: 5000

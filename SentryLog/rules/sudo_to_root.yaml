@@ -1,0 +1,30 @@
+- name: sudo_to_root_shell
+  type: single
+  severity: high
+  description: User escalated to root shell via sudo
+  mitre_tags:
+    - "T1548.003"
+  conditions:
+    - field: action
+      operator: equals
+      value: sudo
+    - field: parsed_fields.target_user
+      operator: equals
+      value: root
+    - field: parsed_fields.command
+      operator: regex
+      value: "/bin/(ba)?sh$|/usr/bin/(ba)?sh$"
+
+- name: sudo_shadow_read
+  type: single
+  severity: critical
+  description: Sensitive file accessed via sudo
+  mitre_tags:
+    - "T1003.008"
+  conditions:
+    - field: action
+      operator: equals
+      value: sudo
+    - field: parsed_fields.command
+      operator: regex
+      value: "/etc/(shadow|passwd|sudoers)"

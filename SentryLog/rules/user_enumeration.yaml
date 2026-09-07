@@ -1,0 +1,15 @@
+name: user_enumeration
+type: threshold
+severity: medium
+description: Multiple login attempts with different invalid usernames
+mitre_tags:
+  - "T1589.001"
+conditions:
+  - field: action
+    operator: in
+    value:
+      - invalid_user
+      - auth_failure
+group_by: source_ip
+threshold_count: 3
+threshold_window: 300
