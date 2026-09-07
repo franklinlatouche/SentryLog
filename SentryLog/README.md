@@ -1,7 +1,3 @@
----
-tags: [projects, sentrylog, cybersecurity, linux]
----
-
 # SentryLog
 
 **A lightweight SIEM (Security Information and Event Management) tool for Linux servers.**
